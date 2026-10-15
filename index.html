@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Calculator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f0f2f5;
+            font-family: Arial, sans-serif;
+        }
+
+        .calculator {
+            width: 320px;
+            padding: 20px;
+            background: #222831;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px #0003;
+        }
+
+        #display {
+            width: 100%;
+            height: 70px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: #eeeeee;
+            color: #222831;
+            font-size: 30px;
+            text-align: right;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            height: 55px;
+            border: none;
+            border-radius: 10px;
+            background: #393e46;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #555b65;
+        }
+
+        .operator {
+            background: #00adb5;
+        }
+
+        .clear {
+            background: #e74c3c;
+        }
+
+        .equal {
+            background: #27ae60;
+            grid-column: span 2;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator">
+        <input type="text" id="display" value="0" readonly>
+
+        <div class="buttons">
+            <button class="clear" onclick="clearDisplay()">AC</button>
+            <button onclick="deleteLast()">DEL</button>
+            <button class="operator" onclick="appendOperator('%')">%</button>
+            <button class="operator" onclick="appendOperator('/')">÷</button>
+
+            <button onclick="appendNumber('7')">7</button>
+            <button onclick="appendNumber('8')">8</button>
+            <button onclick="appendNumber('9')">9</button>
+            <button class="operator" onclick="appendOperator('*')">×</button>
+
+            <button onclick="appendNumber('4')">4</button>
+            <button onclick="appendNumber('5')">5</button>
+            <button onclick="appendNumber('6')">6</button>
+            <button class="operator" onclick="appendOperator('-')">−</button>
+
+            <button onclick="appendNumber('1')">1</button>
+            <button onclick="appendNumber('2')">2</button>
+            <button onclick="appendNumber('3')">3</button>
+            <button class="operator" onclick="appendOperator('+')">+</button>
+
+            <button onclick="appendNumber('0')">0</button>
+            <button onclick="appendNumber('.')">.</button>
+            <button class="equal" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        const display = document.getElementById("display");
+        let expression = "";
+
+        function updateDisplay() {
+            display.value = expression || "0";
+        }
+
+        function appendNumber(number) {
+            if (number === "." && expression.split(/[+\-*/%]/).pop().includes(".")) {
+                return;
+            }
+
+            expression += number;
+            updateDisplay();
+        }
+
+        function appendOperator(operator) {
+            if (!expression && operator !== "-") return;
+
+            if (/[+\-*/%]$/.test(expression)) {
+                expression = expression.slice(0, -1);
+            }
+
+            expression += operator;
+            updateDisplay();
+        }
+
+        function clearDisplay() {
+            expression = "";
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            expression = expression.slice(0, -1);
+            updateDisplay();
+        }
+
+        function calculate() {
+            try {
+                if (!expression || !/^[0-9+\-*/%.() ]+$/.test(expression)) {
+                    throw new Error("Invalid expression");
+                }
+
+                const result = Function('"use strict"; return (' + expression + ')')();
+
+                if (!Number.isFinite(result)) {
+                    throw new Error("Invalid result");
+                }
+
+                expression = String(Number(result.toPrecision(12)));
+                updateDisplay();
+            } catch {
+                display.value = "Error";
+                expression = "";
+            }
+        }
+
+        document.addEventListener("keydown", function(event) {
+            if (/^[0-9.]$/.test(event.key)) {
+                appendNumber(event.key);
+            } else if (["+", "-", "*", "/", "%"].includes(event.key)) {
+                appendOperator(event.key);
+            } else if (event.key === "Enter" || event.key === "=") {
+                calculate();
+            } else if (event.key === "Backspace") {
+                deleteLast();
+            } else if (event.key === "Escape") {
+                clearDisplay();
+            }
+        });
+    </script>
+
+</body>
+</html>
